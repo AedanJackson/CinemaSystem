@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace CinemaSystem
 {
@@ -28,6 +29,9 @@ namespace CinemaSystem
                     {
                         TicketsSold[FilmSelected] += 1;
                     }
+                    DateTime Date = GetDate();
+                    PrintATicket(ListOfFilms[FilmSelected], Date);
+
                 }
             }
             
@@ -42,7 +46,7 @@ namespace CinemaSystem
             Console.WriteLine("We are currently showing:");
             for (int i = 0; i < ListOfFilms.Length; i++)
             {
-                Console.WriteLine($"{i + 1}) {ListOfFilms[i]} ({FilmAgeRatings[i]}) Tickets sold: {TicketsSold[i]}/45");
+                Console.WriteLine($"{i + 1}) {ListOfFilms[i]} ({FilmAgeRatings[i]}) Tickets sold: {TicketsSold[i]}");
             }
         }
 
@@ -51,6 +55,7 @@ namespace CinemaSystem
         {
             // Asks for a film selection (and validates it)
             int UserSelection = 0;
+            bool ValidUserSelection = false;
             do
             {
                 Console.Write($"What film would you like to watch? Please enter a value\nbetween 1 and {ListOfFilms.Length}. Enter 0 to exit and return to main screen: ");
@@ -61,19 +66,25 @@ namespace CinemaSystem
                     {
                         Console.WriteLine("Not a valid selection");
                     }
+                    else
+                    {
+                        ValidUserSelection = true;
+                    }
                 }
                 catch
                 {
                     Console.WriteLine("That is not a number. Please try again.");
                 }
 
-            } while (UserSelection > ListOfFilms.Length || UserSelection < 0);
+            } while (!ValidUserSelection);
             if (UserSelection == 0)
             {
                 return 0;
             }
 
-            // Asks for the uers's age (and validates it) to see if they are allowed to watch the film
+            // Asks for the uers's age (and validates it) to see if they are allowed to watch the film. Does not ask for age if the film is rated "U"
+            // Ouputs the correct corresponding message for each age rating depending on the user's age.
+            // This can maybe be cleaned up this code feels kind of ugly
             if (ListOfAgeRatings[UserSelection - 1] == "U")
             {
                 Console.WriteLine("Great news! This film is rated U. Anyone may watch this film.");
@@ -123,15 +134,50 @@ namespace CinemaSystem
             return UserSelection - 1;
         }
 
+        // Subroutine to ask the user for the date they want to watch the film
+
+        static DateTime GetDate()
+        {
+            // Validation section, checks that the user has entered a correct date and that that date is not in the past, and no more than one week into the future
+            bool ValidDateSelection = false;
+            DateTime Date = DateTime.MinValue;
+            do
+            {
+                Console.Write("Enter the date you would like to watch the film: ");
+                try
+                {
+                    Date = Convert.ToDateTime(Console.ReadLine());
+                    if (Date < DateTime.Now)
+                    {
+                        Console.WriteLine("Cannot book for a date in the past");
+                    }
+                    else if (Date > DateTime.Now + TimeSpan.FromDays(7))
+                    {
+                        Console.WriteLine("This date is too far in the future. Please enter a date less than a week away");
+                    }
+                    else
+                    {
+                        ValidDateSelection = true;
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("That is not a valid date, please enter a date in the format DD/MM/YYYY");
+                }
+            } while (!ValidDateSelection);
+            return Date;
+        }
+
         // Subroutine to print a ticket once the program is done
         // NOTE TO SELF: ADD SEAT NUMBER HERE IF YOU CHOOSE TO ADD IT
 
         static void PrintATicket(string Film, DateTime Date /*seat number?*/)
         {
+            Console.WriteLine("Your ticket:");
             Console.WriteLine("--------------------");
             Console.WriteLine("Aquinas multiplex   ");
             Console.WriteLine($"Film : {Film}");
-            Console.WriteLine($"Date : {Date}");
+            Console.WriteLine($"Date : {Date.Day}/{Date.Month}/{Date.Year}");
             //Console.WriteLine($"Seat : {Seat}");
             Console.WriteLine("\n");
             Console.WriteLine("Enjoy the film!     ");
